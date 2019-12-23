@@ -23,7 +23,7 @@
   "author": "Matt Bell <mappum@gmail.com>",
   "license": "MIT",
   "dependencies": {
-    "blockchain-spv": "^3.2.1"
+    "blockchain-spv": "ABMatrix/blockchain-download"
   },
   "devDependencies": {
     "airtap": "^0.1.0",
