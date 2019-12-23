@@ -12,23 +12,39 @@ function getLocator (chain) {
   return locator
 }
 
+async function sleep(time) { return new Promise((resolve) => setTimeout(resolve, time)); }
+
 module.exports = async function (chain, peers, opts = {}) {
-  opts.concurrency = opts.concurrency || 3
+  opts.concurrency = opts.concurrency || 15
+
+  while (true) {
+    if ( peers.peers.length > 3) { break; } else {
+      console.log("peer is not enough, now it is ",peers.peers.length);
+    }
+    await sleep(5*1000);
+  }
+
+  console.log('start the download ')
 
   while (true) {
     // fetch headers
     let locator = getLocator(chain)
+
+    console.log('start the download promise')
     let res = await new Promise((resolve, reject) => {
       // request from multiple peers, uses more bandiwdth but is faster
       // only the fastest response resolves
       let concurrency = Math.min(opts.concurrency, peers.peers.length)
+      console.log('concurrency downloaders is --------> ',concurrency)
       for (let i = 0; i < concurrency; i++) {
         peers.getHeaders(locator, (err, headers, peer) => {
           if (err) return reject(err)
-          resolve({ headers, peer })
+          resolve({headers, peer})
         })
       }
     })
+
+    console.log('headers lenth',res.headers.length)
 
     try {
       if (res.headers.length === 0) {
@@ -55,10 +71,11 @@ module.exports = async function (chain, peers, opts = {}) {
 
       // less than 2000 headers, we reached the tip
       // TODO: time heuristic
+
       if (headers.length < 2000) break
     } catch (err) {
       // verification failed, disconnect peer
-      res.peer.disconnect(err)
+      res.peer.disconnect_download(err)
     }
   }
 }
